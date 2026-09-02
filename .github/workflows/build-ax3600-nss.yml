@@ -66,7 +66,7 @@ jobs:
           echo -e "$(nproc) thread compile"
           make -j$(nproc) || make -j1 V=s
           echo "status=success" >> $GITHUB_OUTPUT
-
+          
       - name: Organize Firmware Files
         if: steps.compile.outputs.status == 'success'
         run: |

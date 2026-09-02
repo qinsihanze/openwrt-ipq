@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       record_build_info:
-        description: 'Record build info to release'
+        description: "Record build info to release"
         required: false
-        default: 'true'
+        default: true
         type: boolean
 
 jobs:
@@ -47,10 +47,10 @@ jobs:
         run: |
           # Copy seed file
           cp nss-setup/config-nss.seed .config
-          
+
           # Enable Xiaomi AX3600
           sed -i 's/# CONFIG_TARGET_qualcommax_ipq807x_DEVICE_xiaomi_ax3600 is not set/CONFIG_TARGET_qualcommax_ipq807x_DEVICE_xiaomi_ax3600=y/' .config
-          
+
           # Generate full config
           make defconfig
 
@@ -61,23 +61,17 @@ jobs:
           find dl -size -1024c -exec rm -f {} \;
 
       - name: Compile Firmware
-        id: compile
         run: |
-          echo -e "$(nproc) thread compile"
+          echo "$(nproc) thread compile"
           make -j$(nproc) || make -j1 V=s
-          echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Organize Firmware Files
-        if: steps.compile.outputs.status == 'success'
         run: |
-          cd bin/targets/qualcommax/ipq807x
-        # rm -rf packages
-          echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
           echo "BUILD_DATE=$(date +"%Y%m%d_%H%M")" >> $GITHUB_ENV
 
-      - name: Upload Firmware Artifact
-        if: steps.compile.outputs.status == 'success'
+      - name: Upload Firmware and Packages Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Xiaomi_AX3600_NSS_Firmware_${{ env.BUILD_DATE }}
-          path: ${{ env.FIRMWARE_PATH }}/*
+          path: bin/targets/qualcommax/ipq807x/*
+
